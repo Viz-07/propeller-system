@@ -1,4 +1,3 @@
-# dashboard_test_fixed.py - Clean Terminal + Bug Fixed
 import dash
 from dash import dcc, html, Input, Output, dash_table
 import plotly.graph_objs as go
