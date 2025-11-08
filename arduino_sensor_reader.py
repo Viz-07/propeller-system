@@ -1,4 +1,4 @@
-# arduino_sensor_reader.py - Real Arduino Sensor Interface
+# Arduino Sensor Interface
 import serial
 import serial.tools.list_ports
 import time
