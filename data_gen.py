@@ -1,4 +1,3 @@
-# streaming_data_gen.py - SIMPLE DATA GENERATOR
 import random
 import time
 import threading
@@ -10,7 +9,6 @@ class RealTimeDataStreamer:
         self.running = False
         self.thread = None
 
-        # Starting values
         self.x = 0
         self.power = 200
         self.voltage = 200
@@ -30,7 +28,6 @@ class RealTimeDataStreamer:
     def _generate_loop(self):
         """Generate data every second"""
         while self.running:
-            # Update values
             self.x += 1
             self.power += random.randint(-15, 20)
             self.voltage += random.randint(-10, 15)
@@ -39,7 +36,6 @@ class RealTimeDataStreamer:
             self.rpm += random.randint(-50, 50)
             self.vibrations += random.uniform(-0.1, 0.1)
 
-            # Store data
             data_point = {
                 'x_value': self.x,
                 'Power': self.power,
