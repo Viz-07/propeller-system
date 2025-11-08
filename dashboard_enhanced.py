@@ -1,24 +1,25 @@
-
-# dashboard_enhanced.py - DEPLOYMENT-READY DASHBOARD
+# dashboard_test_fixed.py - Clean Terminal + Bug Fixed
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, dash_table
 import plotly.graph_objs as go
 import pandas as pd
 from datetime import datetime
 from data_gen import RealTimeDataStreamer
 
-# Initialize data streamer
-streamer = RealTimeDataStreamer()
-streamer.start_streaming()
+"""
+import logging
 
-# Create Dash app
+# Suppress Flask logging (keep terminal clean)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+"""
+
+sensor = RealTimeDataStreamer()
+sensor.start_streaming()
 app = dash.Dash(__name__)
 
-# Professional color scheme
 COLORS = {
     'background': '#0f172a',
-    'card': 'rgba(255, 255, 255, 0.05)',
-    'card_hover': 'rgba(255, 255, 255, 0.08)',
     'text': '#f1f5f9',
     'text_secondary': '#94a3b8',
     'power': '#3b82f6',
@@ -30,7 +31,6 @@ COLORS = {
     'accent': '#06b6d4'
 }
 
-# Custom CSS
 app.index_string = """
 <!DOCTYPE html>
 <html>
@@ -84,9 +84,7 @@ app.index_string = """
 </html>
 """
 
-# Layout
 app.layout = html.Div([
-    # Header
     html.Div([
         html.Div([
             html.H1('🚀 Real-Time Propeller Dashboard', 
@@ -101,7 +99,16 @@ app.layout = html.Div([
                     'fontWeight': '600',
                     'marginRight': '10px'
                 }),
-                html.Button('⬇️ Download CSV', id='download-btn', className='download-btn')
+                html.Button('⬇️ Download CSV', id='download-btn', n_clicks=0, 
+                           style={
+                               'background': 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                               'color': 'white',
+                               'padding': '10px 20px',
+                               'borderRadius': '8px',
+                               'border': 'none',
+                               'cursor': 'pointer',
+                               'fontWeight': '600'
+                           })
             ], style={'display': 'flex', 'alignItems': 'center'})
         ], style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'})
     ], style={
@@ -110,10 +117,8 @@ app.layout = html.Div([
         'borderBottom': '1px solid rgba(255, 255, 255, 0.1)'
     }),
 
-    # Download component
     dcc.Download(id='download-csv'),
 
-    # Metrics Row
     html.Div(id='metrics-row', style={
         'display': 'grid',
         'gridTemplateColumns': 'repeat(auto-fit, minmax(180px, 1fr))',
@@ -121,26 +126,13 @@ app.layout = html.Div([
         'padding': '20px 40px'
     }),
 
-    # Main Graphs Grid
     html.Div([
-        html.Div([
-            dcc.Graph(id='power-graph', config={'displayModeBar': False}),
-        ], style={'padding': '10px'}),
-        html.Div([
-            dcc.Graph(id='voltage-graph', config={'displayModeBar': False}),
-        ], style={'padding': '10px'}),
-        html.Div([
-            dcc.Graph(id='sound-graph', config={'displayModeBar': False}),
-        ], style={'padding': '10px'}),
-        html.Div([
-            dcc.Graph(id='torque-graph', config={'displayModeBar': False}),
-        ], style={'padding': '10px'}),
-        html.Div([
-            dcc.Graph(id='rpm-graph', config={'displayModeBar': False}),
-        ], style={'padding': '10px'}),
-        html.Div([
-            dcc.Graph(id='vibrations-graph', config={'displayModeBar': False}),
-        ], style={'padding': '10px'}),
+        html.Div([dcc.Graph(id='power-graph', config={'displayModeBar': False})], style={'padding': '10px'}),
+        html.Div([dcc.Graph(id='voltage-graph', config={'displayModeBar': False})], style={'padding': '10px'}),
+        html.Div([dcc.Graph(id='sound-graph', config={'displayModeBar': False})], style={'padding': '10px'}),
+        html.Div([dcc.Graph(id='torque-graph', config={'displayModeBar': False})], style={'padding': '10px'}),
+        html.Div([dcc.Graph(id='rpm-graph', config={'displayModeBar': False})], style={'padding': '10px'}),
+        html.Div([dcc.Graph(id='vibrations-graph', config={'displayModeBar': False})], style={'padding': '10px'}),
     ], style={
         'display': 'grid',
         'gridTemplateColumns': 'repeat(3, 1fr)',
@@ -148,7 +140,6 @@ app.layout = html.Div([
         'padding': '0 30px'
     }),
 
-    # Custom Comparison Section
     html.Div([
         html.H2('📊 Custom Comparison', style={
             'fontSize': '22px',
@@ -158,7 +149,7 @@ app.layout = html.Div([
         }),
         html.Div([
             html.Div([
-                html.Label('X-Axis:', style={'marginRight': '10px', 'fontWeight': '500'}),
+                html.Label('X-Axis:', style={'marginRight': '10px', 'fontWeight': '500', 'color': COLORS['text']}),
                 dcc.Dropdown(
                     id='x-axis-dropdown',
                     options=[
@@ -174,7 +165,7 @@ app.layout = html.Div([
                 )
             ], style={'display': 'flex', 'alignItems': 'center', 'marginRight': '30px'}),
             html.Div([
-                html.Label('Y-Axis:', style={'marginRight': '10px', 'fontWeight': '500'}),
+                html.Label('Y-Axis:', style={'marginRight': '10px', 'fontWeight': '500', 'color': COLORS['text']}),
                 dcc.Dropdown(
                     id='y-axis-dropdown',
                     options=[
@@ -199,18 +190,29 @@ app.layout = html.Div([
         'border': '1px solid rgba(255, 255, 255, 0.1)'
     }),
 
-    # Auto-refresh
+    html.Div([
+        html.H2('📋 Latest Data (Last 10 Readings)', style={
+            'fontSize': '22px',
+            'fontWeight': '600',
+            'marginBottom': '20px',
+            'color': COLORS['text']
+        }),
+        html.Div(id='data-table-container')
+    ], style={
+        'padding': '30px 40px',
+        'background': 'rgba(255, 255, 255, 0.03)',
+        'margin': '20px 40px',
+        'borderRadius': '16px',
+        'border': '1px solid rgba(255, 255, 255, 0.1)'
+    }),
+
     dcc.Interval(id='interval', interval=1000, n_intervals=0)
 
 ], style={'minHeight': '100vh', 'background': 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'})
 
-
-# Callbacks
-
-# Metrics
 @app.callback(Output('metrics-row', 'children'), Input('interval', 'n_intervals'))
 def update_metrics(n):
-    latest = streamer.get_latest_point()
+    latest = sensor.get_latest_point()
     if not latest:
         return []
 
@@ -243,16 +245,19 @@ def update_metrics(n):
                     'marginLeft': '5px'
                 })
             ])
-        ], className='metric-card')
+        ], style={
+            'background': 'rgba(255, 255, 255, 0.05)',
+            'borderRadius': '12px',
+            'padding': '15px',
+            'border': '1px solid rgba(255, 255, 255, 0.1)'
+        })
         cards.append(card)
 
     return cards
 
-
-# Power - Area Chart
 @app.callback(Output('power-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_power(n):
-    data = streamer.get_latest_data(50)
+    data = sensor.get_latest_data(50)
     if not data:
         return go.Figure()
 
@@ -279,11 +284,9 @@ def update_power(n):
     )
     return fig
 
-
-# Voltage - Line with markers
 @app.callback(Output('voltage-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_voltage(n):
-    data = streamer.get_latest_data(50)
+    data = sensor.get_latest_data(50)
     if not data:
         return go.Figure()
 
@@ -309,11 +312,9 @@ def update_voltage(n):
     )
     return fig
 
-
-# Sound - Bar Chart
 @app.callback(Output('sound-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_sound(n):
-    data = streamer.get_latest_data(30)
+    data = sensor.get_latest_data(30)
     if not data:
         return go.Figure()
 
@@ -337,11 +338,9 @@ def update_sound(n):
     )
     return fig
 
-
-# Torque - Gauge/Indicator
 @app.callback(Output('torque-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_torque(n):
-    latest = streamer.get_latest_point()
+    latest = sensor.get_latest_point()
     if not latest:
         return go.Figure()
 
@@ -351,12 +350,12 @@ def update_torque(n):
         delta={'reference': 300},
         title={'text': "⚙️ Torque (Nm)"},
         gauge={
-            'axis': {'range': [None, 400]},
+            'axis': {'range': [None, 500]},
             'bar': {'color': COLORS['torque']},
             'steps': [
                 {'range': [0, 200], 'color': 'rgba(139, 92, 246, 0.2)'},
-                {'range': [200, 300], 'color': 'rgba(139, 92, 246, 0.3)'},
-                {'range': [300, 400], 'color': 'rgba(139, 92, 246, 0.4)'}
+                {'range': [200, 350], 'color': 'rgba(139, 92, 246, 0.3)'},
+                {'range': [350, 500], 'color': 'rgba(139, 92, 246, 0.4)'}
             ],
         }
     ))
@@ -368,11 +367,9 @@ def update_torque(n):
     )
     return fig
 
-
-# RPM - Line Chart
 @app.callback(Output('rpm-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_rpm(n):
-    data = streamer.get_latest_data(50)
+    data = sensor.get_latest_data(50)
     if not data:
         return go.Figure()
 
@@ -397,11 +394,9 @@ def update_rpm(n):
     )
     return fig
 
-
-# Vibrations - Scatter
 @app.callback(Output('vibrations-graph', 'figure'), Input('interval', 'n_intervals'))
 def update_vibrations(n):
-    data = streamer.get_latest_data(50)
+    data = sensor.get_latest_data(50)
     if not data:
         return go.Figure()
 
@@ -432,7 +427,6 @@ def update_vibrations(n):
     )
     return fig
 
-
 # Comparison Graph
 @app.callback(
     Output('comparison-graph', 'figure'),
@@ -441,8 +435,10 @@ def update_vibrations(n):
      Input('y-axis-dropdown', 'value')]
 )
 def update_comparison(n, x_col, y_col):
-    data = streamer.get_latest_data()
-    if not data:
+    data = sensor.get_latest_data()
+
+    # Handle None values
+    if not data or x_col is None or y_col is None:
         return go.Figure()
 
     x_data = [d[x_col] for d in data]
@@ -474,6 +470,36 @@ def update_comparison(n, x_col, y_col):
     )
     return fig
 
+@app.callback(Output('data-table-container', 'children'), Input('interval', 'n_intervals'))
+def update_data_table(n):
+    data = sensor.get_latest_data(10)
+    if not data:
+        return html.Div("No data available", style={'color': COLORS['text_secondary']})
+
+    df = pd.DataFrame(data)
+
+    return dash_table.DataTable(
+        data=df.to_dict('records'),
+        columns=[{'name': i, 'id': i} for i in df.columns],
+        style_cell={
+            'textAlign': 'center',
+            'padding': '10px',
+            'backgroundColor': 'rgba(255, 255, 255, 0.05)',
+            'color': COLORS['text'],
+            'border': '1px solid rgba(255, 255, 255, 0.1)'
+        },
+        style_header={
+            'backgroundColor': 'rgba(255, 255, 255, 0.1)',
+            'fontWeight': 'bold',
+            'border': '1px solid rgba(255, 255, 255, 0.2)'
+        },
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgba(255, 255, 255, 0.02)'
+            }
+        ]
+    )
 
 # CSV Download
 @app.callback(
@@ -482,7 +508,10 @@ def update_comparison(n, x_col, y_col):
     prevent_initial_call=True
 )
 def download_csv(n_clicks):
-    data = streamer.get_latest_data()
+    if n_clicks is None or n_clicks == 0:
+        return None
+
+    data = sensor.get_latest_data()
     if not data:
         return None
 
@@ -494,7 +523,8 @@ def download_csv(n_clicks):
 
 
 if __name__ == '__main__':
-    print("🚀 Enhanced Dashboard starting...")
+    print("✅ Data streaming started!")
+    print("🚀 Dashboard starting...")
     print("📊 Open: http://127.0.0.1:8050")
-    print("✨ Features: CSV Download | Custom Comparison | 6 Graph Types")
+    print("🔇 Terminal logging suppressed (clean output)")
     app.run(debug=False, port=8050)
