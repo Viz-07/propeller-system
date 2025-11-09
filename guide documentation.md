@@ -65,12 +65,9 @@ propeller-dashboard/
 │
 ├── Core Files (Choose One Dashboard)
 │   ├── dashboard_enhanced.py       # Recommended: Clean terminal output
-│   ├── dashboard_test.py           # Testing with simulated data
-│   └── dashboard_arduino.py        # Arduino serial integration
 │
 ├── Data Sources
 │   ├── data_gen.py                 # Simulated data generator
-│   ├── streaming_data_gen.py       # Alternative data generator
 │   └── arduino_sensor_reader.py    # Arduino serial reader
 │
 ├── Arduino (Optional)
