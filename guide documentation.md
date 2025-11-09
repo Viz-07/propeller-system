@@ -154,6 +154,129 @@ propeller-dashboard/
    - Only changed components update (efficient)
    - Smooth animations via Plotly transitions
 
+# Propeller Dashboard Code Explanation
+
+This project builds a **real-time propeller monitoring dashboard** using `Dash` and simulated sensor data.  
+It consists of two main files: `data_gen.py` (data simulation) and `dashboard_enhanced.py` (frontend dashboard).
+
+---
+
+## `data_gen.py` — Data Simulation Logic
+
+### Imports
+- `random`, `time`: used to generate and delay fake readings.
+- `threading`: runs the data generator in the background.
+- `deque`: a fixed-size buffer to store recent data points.
+
+### Class: `RealTimeDataStreamer`
+Simulates a sensor system continuously generating data.
+
+#### `__init__()`
+- Initializes default readings (power, voltage, torque, etc.).
+- Creates a circular data buffer (`deque`) with 100-point memory.
+
+#### `start_streaming()`
+- Launches a background thread to start generating data.
+- Prints confirmation once streaming begins.
+
+#### `_generate_loop()`
+- Runs continuously while `self.running` is `True`.
+- Every second:
+  - Randomly adjusts each reading slightly (adds natural variation).
+  - Creates a new data point with all values.
+  - Appends it to the buffer.
+
+#### `get_latest_data(num_points=50)`
+- Returns the last *N* readings (defaults to 50).
+- Used by dashboard plots.
+
+#### `get_latest_point()`
+- Returns the single latest reading (used for live metrics).
+
+---
+
+## `dashboard_enhanced.py` — Dash Web App
+
+### Imports
+- `dash`, `dash_table`, `dcc`, `html`: main Dash framework and UI components.
+- `plotly.graph_objs`: for plotting interactive charts.
+- `pandas`: used to convert lists of readings into dataframes.
+- `datetime`: to timestamp CSV downloads.
+- `RealTimeDataStreamer`: the simulated data class from `data_gen.py`.
+
+---
+
+### 1. **App Setup**
+- Creates a `RealTimeDataStreamer()` instance and starts it.
+- Initializes a `dash.Dash` app object.
+- Defines a color theme dictionary for consistent styling.
+
+---
+
+### 2. **Custom HTML Template**
+- Overrides the default Dash index page with a custom HTML/CSS style.
+- Adds gradient background, rounded cards, and a clean UI look.
+
+---
+
+### 3. **App Layout**
+Defines all visible UI elements:
+- **Header:** Title, live indicator, and download button.
+- **Metric Cards:** Show latest readings (Power, Voltage, etc.).
+- **Six Graphs:** Real-time line/bar/gauge plots for each parameter.
+- **Comparison Section:** Allows selecting two variables to plot against each other.
+- **Data Table:** Shows the 10 most recent readings.
+- **Interval Component:** Triggers auto-refresh every second.
+
+---
+
+### 4. **Callbacks (Dynamic Updates)**
+
+#### `update_metrics()`
+- Called every second.
+- Pulls the latest sensor values.
+- Displays them in styled metric cards.
+
+#### `update_power()`, `update_voltage()`, `update_sound()`, `update_torque()`, `update_rpm()`, `update_vibrations()`
+- Each function updates its respective chart with the latest data.
+- Different graph styles are used:
+  - Power → area plot  
+  - Voltage → line with markers  
+  - Sound → bar chart  
+  - Torque → gauge indicator  
+  - RPM → line plot  
+  - Vibrations → scatter with color scale  
+
+#### `update_comparison()`
+- Draws a scatter plot of any two chosen metrics (from dropdowns).
+- Lets users visually compare correlations.
+
+#### `update_data_table()`
+- Displays the last 10 readings in a clean `dash_table`.
+
+#### `download_csv()`
+- When the download button is clicked:
+  - Grabs all recent data.
+  - Saves it as a timestamped CSV.
+
+---
+
+### 5. **App Entry Point**
+When run directly:
+- Starts the Dash server on `http://127.0.0.1:8050`.
+- Prints a few console messages confirming startup.
+
+---
+
+## Summary
+
+| File | Purpose | Key Functionality |
+|------|----------|-------------------|
+| `data_gen.py` | Simulates live propeller data | Background thread, fake data generation |
+| `dashboard_enhanced.py` | Visual dashboard for monitoring | Dash UI, live graphs, CSV export |
+
+This creates a live updating dashboard that visually tracks and compares multiple simulated sensor readings in real-time.
+
 ### Performance Metrics
 
 | Metric | Value | Notes |
