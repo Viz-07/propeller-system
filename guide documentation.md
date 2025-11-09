@@ -1,20 +1,6 @@
 # 🚀 Real-Time Propeller Dashboard
 
 A professional real-time monitoring dashboard for UAV propeller systems with Arduino integration, live data visualization, and CSV export capabilities.
-
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Usage](#usage)
-- [Dashboard Versions](#dashboard-versions)
-- [Arduino Integration](#arduino-integration)
-- [Troubleshooting](#troubleshooting)
-- [Technical Details](#technical-details)
-
 ---
 
 ## Overview
