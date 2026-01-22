@@ -5,12 +5,12 @@ This guide provides detailed step-by-step instructions to set up and run the Rea
 ---
 
 ## Table of Contents
-1. [System Requirements]
-2. [Software Installation]
-3. [Project Setup]
-4. [First Run]
-5. [Verification]
-6. [Next Steps]
+1. System Requirements
+2. Software Installation
+3. Project Setup
+4. First Run
+5. Verification
+6. Next Steps
 
 ---
 
